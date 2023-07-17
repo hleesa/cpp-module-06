@@ -4,7 +4,8 @@
 
 #include <iostream>
 #include <cstdlib>
-
+#include <sstream>
+#include <cmath>
 
 class ScalarConverter {
 
