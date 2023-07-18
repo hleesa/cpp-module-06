@@ -1,8 +1,6 @@
 
 #include "ScalarConverter.hpp"
 
-#include <string>
-
 ScalarConverter::ScalarConverter() {
 }
 
@@ -18,77 +16,53 @@ ScalarConverter& ScalarConverter::operator=(const ScalarConverter& other) {
 ScalarConverter::~ScalarConverter() {
 }
 
-
-void toChar(std::string value) {
-	if (value.length() == 1) {
-		char charValue = static_cast<char>(value[0]);
-		if (isprint(charValue)) {
-			std::cout << "char: " << charValue << '\n';
+void printDouble(const char* scalar, bool isSimple, float floatValue) {
+	double doubleValue = 0.0;
+	std::cout << "double: ";
+	if (isSimple) {
+		doubleValue = static_cast<double>(floatValue);
+		std::cout << std::fixed << std::setprecision(1) << doubleValue << "\n";
+		return;
+	}
+	std::string str(scalar);
+	std::istringstream iss(str);
+	if (iss >> doubleValue) {
+		if (std::isinf(doubleValue)) {
+			if (doubleValue > 0.0) {
+				std::cout << "+inf\n";
+			}
+			else {
+				std::cout << "-inf\n";
+			}
 		}
-		else{
-			std::cout << "Non displayable"  << '\n';
+		else if (std::isnan(doubleValue)) {
+			std::cout << "nan\n";
+		}
+		else {
+			std::cout << std::fixed << std::setprecision(1) << doubleValue << "\n";
+			return;
 		}
 	}
 	else {
-		std::cout << "Non displayable"  << '\n';
+		std::cout << "impossible\n";
 	}
-	return ;
 }
 
-void toInt(double doubleValue) {
-	int intValue = static_cast<int>(doubleValue);
-	std::cout << "int: " << intValue << '\n';
-}
-
-//void toFloat(double )
-
-//bool toChar()
-
-
-
-void ScalarConverter::convert(const char* scalar) {
-
-	std::string scalarString(scalar);
-	char* end = NULL;
-	double doubleValue = strtod(scalar, &end);
-	if(!(*end == 0 || std::string(end) == std::string("f") || isascii(*end))) {
-		std::cout << *end << ", " << std::string(end) << '\n';
-		std::cout << "error\n";
-		return ;
+void printFloat(const char* scalar, bool isSimple, int intValue) {
+	float floatValue = 0.0f;
+	std::cout << "float: ";
+	if (isSimple) {
+		floatValue = static_cast<float>(intValue);
+		std::cout << std::fixed << std::setprecision(1) << floatValue << "f\n";
+		printDouble(scalar, true, floatValue);
+		return;
 	}
-	char c = scalarString[0];
-	std::cout << "char: " << c << '\n';
-
-
-
-	// int
-
-	int intValue = 0;
-	long longValue = std::strtol(scalar, &end, 10);
-	if (scalar == end) {
-		std::cout << "Invalid input: " << scalarString << '\n';
-	}
-	else if (*end != '\0') {
-		std::cout << "Conversion stopped at character: " << *end << '\n';
-	}
-	else if(longValue > INT_MAX || longValue < INT_MIN) {
-		std::cout << "Value exceeds the range of an int\n";
-	}
-	else {
-		intValue = static_cast<int>(longValue);
-		std::cout << "int: " << intValue << '\n';
-	}
-
-	// int로 변환 됐으면
-	float floatValue = static_cast<float>(intValue);
-	std::cout << "float: " << floatValue << '\n';
-
-	// 변환 안되면
-	std::istringstream iss(scalarString);
+	std::string str(scalar);
+	std::istringstream iss(str);
 	if (iss >> floatValue) {
 		if (std::isinf(floatValue)) {
-			if (floatValue > log10f(0)) {
-				std::cout << "inff\n";
+			if (floatValue > 0.0f) {
+				std::cout << "+inff\n";
 			}
 			else {
 				std::cout << "-inff\n";
@@ -98,22 +72,78 @@ void ScalarConverter::convert(const char* scalar) {
 			std::cout << "nanf\n";
 		}
 		else {
-			std::cout << "float: " << floatValue << '\n';
+			std::cout << std::fixed << std::setprecision(1) << floatValue << "f\n";
+			printDouble(scalar, true, floatValue);
+			return;
 		}
 	}
 	else {
-		std::cout << "conversion fail\n";
+		std::cout << "impossible\n";
 	}
+	printDouble(scalar, false, floatValue);
+}
 
+void printInt(const char* scalar, bool isSimple, char charValue) {
+	int intValue = 0;
+	std::cout << "int: ";
+	if (isSimple) {
+		intValue = static_cast<int>(charValue);
+		std::cout << intValue << '\n';
+		printFloat(scalar, true, intValue);
+		return;
+	}
+	char* end;
+	long longValue = std::strtol(scalar, &end, 10);
+	if (scalar != end && *end == '\0' && longValue <= INT_MAX && longValue >= INT_MIN) {
+		intValue = static_cast<int>(longValue);
+		std::cout << intValue << '\n';
+		printFloat(scalar, true, intValue);
+		return;
+	}
+	std::cout << "impossible\n";
+	printFloat(scalar, false, intValue);
+}
 
+void printChar(const char* scalar) {
+	char charValue = '\0';
+	int intValue;
+	std::string str(scalar);
+	std::cout << "char: ";
+	if (str.length() == 1) {
+		intValue = str.at(0);
+	}
+	else {
+		char* end;
+		double doubleValue = strtod(scalar, &end);
+		if (scalar == end || std::isnan(doubleValue) || std::isinf(doubleValue)) {
+			std::cout << "impossible\n";
+			printInt(scalar, false, charValue);
+			return;
+		}
+		if (*end == 'f')
+			*end = '0';
+		intValue = static_cast<int>(doubleValue);
+	}
+	if (isdigit(intValue))
+		intValue = static_cast<int>(intValue - '0');
+	if (intValue <= CHAR_MAX || intValue <= CHAR_MIN) {
+		if(isprint(intValue)) {
+			charValue = static_cast<char>(intValue);
+			std::cout << charValue << '\n';
+			printInt(scalar, true, charValue);
+			return;
+		}
+		else {
+			std::cout << "Non displayable\n";
+		}
+	}
+	else {
+		std::cout << "impossible\n";
+	}
+	printInt(scalar, false, charValue);
+}
 
-
-	std::cout << "===============================================================\n";
-	int imax = INT32_MAX;
-	double d = imax + 1;
-	int jj = static_cast<int>(d);
-	std::cout << imax << '\n';
-	std::cout << d << '\n';
-	std::cout << jj << '\n';
-	std::cout << "double: " << doubleValue << '\n';
+void ScalarConverter::convert(const char* scalar) {
+	printChar(scalar);
+	return;
 }
