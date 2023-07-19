@@ -1,14 +1,13 @@
 
-#ifndef CPP_HLEESA_DATA_HPP
-#define CPP_HLEESA_DATA_HPP
+#ifndef DATA_HPP
+#define DATA_HPP
 
-class Data {
+#include <string>
 
-public:
+struct Data {
+	std::string s1;
 	int value;
-
-	Data(int value);
+	std::string s2;
 };
 
-
-#endif //CPP_HLEESA_DATA_HPP
+#endif //DATA_HPP

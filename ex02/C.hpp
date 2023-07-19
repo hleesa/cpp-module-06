@@ -1,6 +1,6 @@
 
-#ifndef CPP_HLEESA_C_HPP
-#define CPP_HLEESA_C_HPP
+#ifndef C_HPP
+#define C_HPP
 
 #include "Base.hpp"
 
@@ -11,4 +11,4 @@ public:
 };
 
 
-#endif //CPP_HLEESA_C_HPP
+#endif //C_HPP

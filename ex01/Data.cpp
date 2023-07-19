@@ -1,5 +1,5 @@
 
 #include "Data.hpp"
 
-Data::Data(int value) : value(value) {
-}
+//Data::Data(int value) : value(value) {
+//}

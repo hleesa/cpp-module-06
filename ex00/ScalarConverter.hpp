@@ -1,6 +1,6 @@
 
-#ifndef CPP_HLEESA_SCALARCONVERTER_HPP
-#define CPP_HLEESA_SCALARCONVERTER_HPP
+#ifndef SCALARCONVERTER_HPP
+#define SCALARCONVERTER_HPP
 
 #include <iostream>
 #include <cstdlib>
@@ -27,4 +27,4 @@ public:
 };
 
 
-#endif //CPP_HLEESA_SCALARCONVERTER_HPP
+#endif //SCALARCONVERTER_HPP

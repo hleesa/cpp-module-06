@@ -1,6 +1,6 @@
 
-#ifndef CPP_HLEESA_SERIALIZER_HPP
-#define CPP_HLEESA_SERIALIZER_HPP
+#ifndef SERIALIZER_HPP
+#define SERIALIZER_HPP
 
 #include <iostream>
 #include <stdint.h>
@@ -25,4 +25,4 @@ public:
 };
 
 
-#endif //CPP_HLEESA_SERIALIZER_HPP
+#endif //SERIALIZER_HPP
