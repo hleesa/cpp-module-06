@@ -7,9 +7,7 @@ int main() {
 	Data* deserialized = Serializer::deserialize(serialized);
 
 	bool isEqual = (deserialized == &data);
-
 	std::cout << isEqual << '\n';
-	std::cout << sizeof(data) << '\n';
 
 	return 0;
 }
