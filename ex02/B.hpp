@@ -7,7 +7,7 @@
 class B : public Base {
 
 public:
-	~B();
+	~B() {};
 };
 
 #endif //CPP_HLEESA_B_HPP

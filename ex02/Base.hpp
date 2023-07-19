@@ -5,8 +5,7 @@
 class Base {
 
 public:
-	virtual ~Base();
+	virtual ~Base() {}
 };
-
 
 #endif //CPP_HLEESA_BASE_HPP
