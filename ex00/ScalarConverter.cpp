@@ -16,10 +16,10 @@ ScalarConverter& ScalarConverter::operator=(const ScalarConverter& other) {
 ScalarConverter::~ScalarConverter() {
 }
 
-void printDouble(const char* scalar, bool isSimple, float floatValue) {
+void printDouble(const char* scalar, bool& isDirectCast, float floatValue) {
 	double doubleValue = 0.0;
 	std::cout << "double: ";
-	if (isSimple) {
+	if (isDirectCast) {
 		doubleValue = static_cast<double>(floatValue);
 		std::cout << std::fixed << std::setprecision(1) << doubleValue << "\n";
 		return;
@@ -48,15 +48,16 @@ void printDouble(const char* scalar, bool isSimple, float floatValue) {
 	}
 }
 
-void printFloat(const char* scalar, bool isSimple, int intValue) {
+float printFloat(const char* scalar, bool& isDirectCast, int intValue) {
 	float floatValue = 0.0f;
 	std::cout << "float: ";
-	if (isSimple) {
+	if (isDirectCast) {
 		floatValue = static_cast<float>(intValue);
 		std::cout << std::fixed << std::setprecision(1) << floatValue << "f\n";
-		printDouble(scalar, true, floatValue);
-		return;
+		isDirectCast = true;
+		return floatValue;
 	}
+	isDirectCast = false;
 	std::string str(scalar);
 	std::istringstream iss(str);
 	if (iss >> floatValue) {
@@ -73,65 +74,64 @@ void printFloat(const char* scalar, bool isSimple, int intValue) {
 		}
 		else {
 			std::cout << std::fixed << std::setprecision(1) << floatValue << "f\n";
-			printDouble(scalar, true, floatValue);
-			return;
+			isDirectCast = true;
+			return floatValue;
 		}
 	}
 	else {
 		std::cout << "impossible\n";
 	}
-	printDouble(scalar, false, floatValue);
+	return floatValue;
 }
 
-void printInt(const char* scalar, bool isSimple, char charValue) {
+int printInt(const char* scalar, bool& isDirectCast, char charValue) {
 	int intValue = 0;
 	std::cout << "int: ";
-	if (isSimple) {
+	if (isDirectCast) {
 		intValue = static_cast<int>(charValue);
 		std::cout << intValue << '\n';
-		printFloat(scalar, true, intValue);
-		return;
+		isDirectCast = true;
+		return intValue;
 	}
+	isDirectCast = false;
 	char* end;
 	long longValue = std::strtol(scalar, &end, 10);
 	if (scalar != end && *end == '\0' && longValue <= INT_MAX && longValue >= INT_MIN) {
 		intValue = static_cast<int>(longValue);
 		std::cout << intValue << '\n';
-		printFloat(scalar, true, intValue);
-		return;
+		isDirectCast = true;
+		return intValue;
 	}
 	std::cout << "impossible\n";
-	printFloat(scalar, false, intValue);
+	return intValue;
 }
 
-void printChar(const char* scalar) {
+char printChar(const char* scalar, bool& isDirectCast) {
 	char charValue = '\0';
 	int intValue;
-	std::string str(scalar);
 	std::cout << "char: ";
-	if (str.length() == 1) {
-		intValue = str.at(0);
+	char* end;
+	double doubleValue = strtod(scalar, &end);
+	if (scalar == end || std::isnan(doubleValue) || std::isinf(doubleValue)) {
+		std::cout << "impossible\n";
+		return charValue;
 	}
-	else {
-		char* end;
-		double doubleValue = strtod(scalar, &end);
-		if (scalar == end || std::isnan(doubleValue) || std::isinf(doubleValue)) {
+	if (*end == 'f') {
+		*end = '\0';
+		if (*(end + 1) != '\0') {
 			std::cout << "impossible\n";
-			printInt(scalar, false, charValue);
-			return;
+			return charValue;
 		}
-		if (*end == 'f')
-			*end = '0';
-		intValue = static_cast<int>(doubleValue);
 	}
+	intValue = static_cast<int>(doubleValue);
 	if (isdigit(intValue))
 		intValue = static_cast<int>(intValue - '0');
 	if (intValue <= CHAR_MAX || intValue <= CHAR_MIN) {
-		if(isprint(intValue)) {
+		if (isprint(intValue)) {
 			charValue = static_cast<char>(intValue);
 			std::cout << charValue << '\n';
-			printInt(scalar, true, charValue);
-			return;
+			isDirectCast = true;
+			return charValue;
 		}
 		else {
 			std::cout << "Non displayable\n";
@@ -140,10 +140,14 @@ void printChar(const char* scalar) {
 	else {
 		std::cout << "impossible\n";
 	}
-	printInt(scalar, false, charValue);
+	return charValue;
 }
 
 void ScalarConverter::convert(const char* scalar) {
-	printChar(scalar);
+	bool isDirectCast = false;
+	char charValue = printChar(scalar, isDirectCast);
+	int intValue = printInt(scalar, isDirectCast, charValue);
+	float floatValue = printFloat(scalar, isDirectCast, intValue);
+	printDouble(scalar, isDirectCast, floatValue);
 	return;
 }
