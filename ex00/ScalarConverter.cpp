@@ -16,138 +16,115 @@ ScalarConverter& ScalarConverter::operator=(const ScalarConverter& other) {
 ScalarConverter::~ScalarConverter() {
 }
 
-void printDouble(const char* scalar, bool& isDirectCast, float floatValue) {
-	double doubleValue = 0.0;
+void printDouble(double doubleValue, bool isInteger) {
 	std::cout << "double: ";
-	if (isDirectCast) {
-		doubleValue = static_cast<double>(floatValue);
-		std::cout << std::fixed << std::setprecision(1) << doubleValue << "\n";
-		return;
+	if (std::isinf(doubleValue)) {
+		if (doubleValue > 0.0)
+			std::cout << "+inf\n";
+		else
+			std::cout << "-inf\n";
 	}
-	std::string str(scalar);
-	std::istringstream iss(str);
-	if (iss >> doubleValue) {
-		if (std::isinf(doubleValue)) {
-			if (doubleValue > 0.0) {
-				std::cout << "+inf\n";
-			}
-			else {
-				std::cout << "-inf\n";
-			}
-		}
-		else if (std::isnan(doubleValue)) {
-			std::cout << "nan\n";
-		}
-		else {
+	else if (std::isnan(doubleValue))
+		std::cout << "nan\n";
+	else {
+		if (isInteger)
 			std::cout << std::fixed << std::setprecision(1) << doubleValue << "\n";
-			return;
-		}
+		else
+			std::cout << doubleValue << "\n";
 	}
-	else {
-		std::cout << "impossible\n";
-	}
+	return;
 }
 
-float printFloat(const char* scalar, bool& isDirectCast, int intValue) {
-	float floatValue = 0.0f;
+void printFloat(double doubleValue, bool isInteger) {
 	std::cout << "float: ";
-	if (isDirectCast) {
-		floatValue = static_cast<float>(intValue);
-		std::cout << std::fixed << std::setprecision(1) << floatValue << "f\n";
-		isDirectCast = true;
-		return floatValue;
+	float floatValue = static_cast<float>(doubleValue);
+	if (std::isinf(floatValue)) {
+		if (floatValue > 0.0f)
+			std::cout << "+inff\n";
+		else
+			std::cout << "-inff\n";
 	}
-	isDirectCast = false;
-	std::string str(scalar);
-	std::istringstream iss(str);
-	if (iss >> floatValue) {
-		if (std::isinf(floatValue)) {
-			if (floatValue > 0.0f) {
-				std::cout << "+inff\n";
-			}
-			else {
-				std::cout << "-inff\n";
-			}
-		}
-		else if (std::isnan(floatValue)) {
-			std::cout << "nanf\n";
-		}
-		else {
-			std::cout << std::fixed << std::setprecision(1) << floatValue << "f\n";
-			isDirectCast = true;
-			return floatValue;
-		}
-	}
+	else if (std::isnan(floatValue))
+		std::cout << "nanf\n";
 	else {
-		std::cout << "impossible\n";
+		if (isInteger)
+			std::cout << std::fixed << std::setprecision(1) << floatValue << "f\n";
+		else
+			std::cout << floatValue << "f\n";
 	}
-	return floatValue;
+	return;
 }
 
-int printInt(const char* scalar, bool& isDirectCast, char charValue) {
-	int intValue = 0;
+void printInt(long longValue, bool isFloat) {
 	std::cout << "int: ";
-	if (isDirectCast) {
-		intValue = static_cast<int>(charValue);
-		std::cout << intValue << '\n';
-		isDirectCast = true;
-		return intValue;
+	if (!isFloat || longValue > INT_MAX || longValue < INT_MIN)
+		std::cout << "impossible\n";
+	else
+		std::cout << static_cast<int>(longValue) << '\n';
+	return;
+}
+
+void printChar(long longValue, bool isFloat) {
+	std::cout << "char: ";
+	if (!isFloat || longValue > CHAR_MAX || longValue < CHAR_MIN)
+		std::cout << "impossible\n";
+	else {
+		if (isprint(longValue))
+			std::cout << static_cast<char>(longValue) << '\n';
+		else
+			std::cout << "Non displayable\n";
 	}
-	isDirectCast = false;
+	return;
+}
+
+bool isChar(const char* scalar) {
+	std::string scalarStr(scalar);
+	if (scalarStr.length() == 1 && isascii(scalarStr.at(0))) {
+		return true;
+	}
+	return false;
+}
+
+long toLong(const char* scalar, bool& isInteger, double doubleValue) {
 	char* end;
 	long longValue = std::strtol(scalar, &end, 10);
-	if (scalar != end && *end == '\0' && longValue <= INT_MAX && longValue >= INT_MIN) {
-		intValue = static_cast<int>(longValue);
-		std::cout << intValue << '\n';
-		isDirectCast = true;
-		return intValue;
+	if (isChar(scalar)) {
+		isInteger = true;
+		longValue = static_cast<long>(scalar[0]);
+		if (isdigit(longValue))
+			longValue -= '0';
 	}
-	std::cout << "impossible\n";
-	return intValue;
+	else if (*end == '.')
+		isInteger = false;
+	else if (longValue == static_cast<long>(doubleValue))
+		isInteger = true;
+	return longValue;
 }
 
-char printChar(const char* scalar, bool& isDirectCast) {
-	char charValue = '\0';
-	int intValue;
-	std::cout << "char: ";
+double toDouble(const char* scalar, bool& isFloat) {
 	char* end;
 	double doubleValue = strtod(scalar, &end);
-	if (scalar == end || std::isnan(doubleValue) || std::isinf(doubleValue)) {
-		std::cout << "impossible\n";
-		return charValue;
+	if (scalar != end && !std::isnan(doubleValue) && !std::isinf(doubleValue))
+		isFloat = true;
+	else if (isChar(scalar)) {
+		isFloat = true;
+		doubleValue = static_cast<double>(scalar[0]);
 	}
-	if (*end == 'f') {
-		*end = '\0';
-		if (*(end + 1) != '\0') {
-			std::cout << "impossible\n";
-			return charValue;
-		}
-	}
-	intValue = static_cast<int>(doubleValue);
-	if (isdigit(intValue))
-		intValue = static_cast<int>(intValue - '0');
-	if (intValue <= CHAR_MAX || intValue <= CHAR_MIN) {
-		if (isprint(intValue)) {
-			charValue = static_cast<char>(intValue);
-			std::cout << charValue << '\n';
-			isDirectCast = true;
-			return charValue;
-		}
-		else {
-			std::cout << "Non displayable\n";
-		}
-	}
-	else {
-		std::cout << "impossible\n";
-	}
-	return charValue;
+	return doubleValue;
 }
 
 void ScalarConverter::convert(const char* scalar) {
-	bool isDirectCast = false;
-	char charValue = printChar(scalar, isDirectCast);
-	int intValue = printInt(scalar, isDirectCast, charValue);
-	float floatValue = printFloat(scalar, isDirectCast, intValue);
-	printDouble(scalar, isDirectCast, floatValue);
+	bool isFloat = false;
+	bool isInteger = false;
+	double doubleValue = toDouble(scalar, isFloat);
+	long longValue = toLong(scalar, isInteger, doubleValue);
+	if (!isInteger)
+		longValue = static_cast<long>(doubleValue);
+//	std::cout << isFloat << '\n';
+//	std::cout << isInteger << '\n';
+	printChar(longValue, isFloat);
+	printInt(longValue, isFloat);
+	printFloat(doubleValue, isInteger);
+	printDouble(doubleValue, isInteger);
 	return;
 }
