@@ -77,51 +77,54 @@ void printChar(long longValue, bool isFloat) {
 	return;
 }
 
-bool isChar(const char* scalar) {
-	std::string scalarStr(scalar);
-	if (scalarStr.length() == 1 && isascii(scalarStr.at(0))) {
+bool isChar(const std::string& scalar) {
+	if (scalar.length() == 1 && isascii(scalar.at(0))) {
 		return true;
 	}
 	return false;
 }
 
-long toLong(const char* scalar, bool& isInteger, double doubleValue) {
-	char* end;
-	long longValue = std::strtol(scalar, &end, 10);
-	if (isChar(scalar)) {
+long toLong(const std::string& scalar, bool& isInteger, double doubleValue) {
+	std::stringstream ss(scalar);
+	long longValue;
+	if (ss >> longValue && doubleValue == static_cast<double>(longValue)) {
+		isInteger = true;
+	}
+	else if (isChar(scalar)) {
 		isInteger = true;
 		longValue = static_cast<long>(scalar[0]);
 		if (isdigit(longValue))
 			longValue -= '0';
 	}
-	else if (*end == '.')
-		isInteger = false;
-	else if (longValue == static_cast<long>(doubleValue))
-		isInteger = true;
 	return longValue;
 }
 
-double toDouble(const char* scalar, bool& isFloat) {
-	char* end;
-	double doubleValue = strtod(scalar, &end);
-	if (scalar != end && !std::isnan(doubleValue) && !std::isinf(doubleValue))
+double toDouble(const std::string& scalar, bool& isFloat) {
+	std::stringstream ss(scalar);
+	double doubleValue;
+	if (ss >> doubleValue || isChar(scalar)) {
 		isFloat = true;
-	else if (isChar(scalar)) {
-		isFloat = true;
-		doubleValue = static_cast<double>(scalar[0]);
 	}
 	return doubleValue;
+}
+
+std::string toString(const char* scalar){
+	char* end;
+	strtod(scalar, &end);
+	if (*end == 'f') {
+		*end = '\0';
+	}
+	return std::string(scalar);
 }
 
 void ScalarConverter::convert(const char* scalar) {
 	bool isFloat = false;
 	bool isInteger = false;
-	double doubleValue = toDouble(scalar, isFloat);
-	long longValue = toLong(scalar, isInteger, doubleValue);
+	std::string scalarStr = toString(scalar);
+	double doubleValue = toDouble(scalarStr, isFloat);
+	long longValue = toLong(scalarStr, isInteger, doubleValue);
 	if (!isInteger)
 		longValue = static_cast<long>(doubleValue);
-//	std::cout << isFloat << '\n';
-//	std::cout << isInteger << '\n';
 	printChar(longValue, isFloat);
 	printInt(longValue, isFloat);
 	printFloat(doubleValue, isInteger);
