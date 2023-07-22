@@ -70,7 +70,7 @@ void printChar(long longValue, bool isFloat) {
 		std::cout << "impossible\n";
 	else {
 		if (isprint(longValue))
-			std::cout << static_cast<char>(longValue) << '\n';
+			std::cout << "'" << static_cast<char>(longValue) << "'" << '\n';
 		else
 			std::cout << "Non displayable\n";
 	}
