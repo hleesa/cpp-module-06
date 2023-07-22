@@ -78,10 +78,7 @@ void printChar(long longValue, bool isFloat) {
 }
 
 bool isChar(const std::string& scalar) {
-	if (scalar.length() == 1 && isascii(scalar.at(0))) {
-		return true;
-	}
-	return false;
+	return scalar.length() == 1 && isascii(scalar.at(0));
 }
 
 long toLong(const std::string& scalar, bool& isInteger, double doubleValue) {
@@ -102,18 +99,16 @@ long toLong(const std::string& scalar, bool& isInteger, double doubleValue) {
 double toDouble(const std::string& scalar, bool& isFloat) {
 	std::stringstream ss(scalar);
 	double doubleValue;
-	if (ss >> doubleValue || isChar(scalar)) {
+	if (ss >> doubleValue || isChar(scalar))
 		isFloat = true;
-	}
 	return doubleValue;
 }
 
-std::string toString(const char* scalar){
+std::string toString(const char* scalar) {
 	char* end;
 	strtod(scalar, &end);
-	if (*end == 'f') {
+	if (*end == 'f')
 		*end = '\0';
-	}
 	return std::string(scalar);
 }
 
