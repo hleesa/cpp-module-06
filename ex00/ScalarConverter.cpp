@@ -1,6 +1,13 @@
 
 #include "ScalarConverter.hpp"
 
+enum eType {
+	CHAR,
+	INT,
+	FLOAT,
+	DOUBLE,
+};
+
 ScalarConverter::ScalarConverter() {
 }
 
@@ -16,113 +23,176 @@ ScalarConverter& ScalarConverter::operator=(const ScalarConverter& other) {
 ScalarConverter::~ScalarConverter() {
 }
 
-void printDouble(double doubleValue, bool isInteger) {
+void printDouble(double value) {
 	std::cout << "double: ";
-	if (std::isinf(doubleValue)) {
-		if (doubleValue > 0.0)
+	if (isinf(value)) {
+		if (value > 0.0)
 			std::cout << "+inf\n";
 		else
 			std::cout << "-inf\n";
 	}
-	else if (std::isnan(doubleValue))
+	else if (isnan(value))
 		std::cout << "nan\n";
-	else {
-		if (isInteger)
-			std::cout << std::fixed << std::setprecision(1) << doubleValue << "\n";
-		else
-			std::cout << doubleValue << "\n";
-	}
+	else
+		std::cout << value << "\n";
 	return;
 }
 
-void printFloat(double doubleValue, bool isInteger) {
+void printFloat(float value) {
 	std::cout << "float: ";
-	float floatValue = static_cast<float>(doubleValue);
-	if (std::isinf(floatValue)) {
-		if (floatValue > 0.0f)
+	if (isinf(value)) {
+		if (value > 0.0f)
 			std::cout << "+inff\n";
 		else
 			std::cout << "-inff\n";
 	}
-	else if (std::isnan(floatValue))
+	else if (isnan(value))
 		std::cout << "nanf\n";
-	else {
-		if (isInteger)
-			std::cout << std::fixed << std::setprecision(1) << floatValue << "f\n";
-		else
-			std::cout << floatValue << "f\n";
-	}
+	else
+		std::cout << value << "f\n";
 	return;
 }
 
-void printInt(long longValue, bool isFloat) {
+void printInt(int value, double doubleValue, bool isPossible) {
 	std::cout << "int: ";
-	if (!isFloat || longValue > INT_MAX || longValue < INT_MIN)
+	if (!isPossible || isnan(doubleValue) || isinf(doubleValue))
 		std::cout << "impossible\n";
 	else
-		std::cout << static_cast<int>(longValue) << '\n';
+		std::cout << value << '\n';
 	return;
 }
 
-void printChar(long longValue, bool isFloat) {
+void printChar(char value, double doubleValue, bool isPossible) {
 	std::cout << "char: ";
-	if (!isFloat || longValue > CHAR_MAX || longValue < CHAR_MIN)
+	if (!isPossible || value > CHAR_MAX || value < CHAR_MIN || isnan(doubleValue) || isinf(doubleValue))
 		std::cout << "impossible\n";
 	else {
-		if (isprint(longValue))
-			std::cout << "'" << static_cast<char>(longValue) << "'" << '\n';
+		if (isprint(value))
+			std::cout << "'" << value << "'" << '\n';
 		else
 			std::cout << "Non displayable\n";
 	}
 	return;
 }
 
+void print(char charValue, int intValue, float floatValue, double doubleValue, bool isPossible) {
+	printChar(charValue, doubleValue, isPossible);
+	printInt(intValue, doubleValue, isPossible);
+	printFloat(floatValue);
+	printDouble(doubleValue);
+}
+
+double toDouble(const char* scalar, bool& isPossible) {
+	std::string scalarStr(scalar);
+	std::stringstream ss(scalarStr);
+	double value;
+	isPossible = ss >> value;
+	return value;
+}
+
+void printDouble(const char* scalar) {
+	bool isPossible = true;
+	double doubleValue = toDouble(scalar, isPossible);
+	char charValue = static_cast<char>(doubleValue);
+	int intValue = static_cast<int>(doubleValue);
+	float floatValue = static_cast<int>(doubleValue);
+	print(charValue, intValue, floatValue, doubleValue, isPossible);
+	return;
+}
+
+float toFloat(const char* scalar, bool& isPossible) {
+	std::string scalarStr(scalar);
+	scalarStr.at(scalarStr.length() - 1) = '\0';
+	std::stringstream ss(scalarStr);
+	float value;
+	isPossible = ss >> value;
+	return value;
+}
+
+void printFloat(const char* scalar) {
+	bool isPossible;
+	float floatValue = toFloat(scalar, isPossible);
+	double doubleValue = static_cast<double>(floatValue);
+	char charValue = static_cast<char>(floatValue);
+	int intValue = static_cast<int>(floatValue);
+	print(charValue, intValue, floatValue, doubleValue, isPossible);
+	return;
+}
+
+int toInt(const char* scalar, bool& isPossible) {
+	std::string scalarStr(scalar);
+	std::stringstream ss(scalarStr);
+	int value;
+	isPossible = ss >> value;
+	return value;
+}
+
+void printInt(const char* scalar) {
+	bool isPossible;
+	int intValue = toInt(scalar, isPossible);
+	float floatValue = static_cast<float>(intValue);
+	double doubleValue = static_cast<double>(intValue);
+	char charValue = static_cast<char>(intValue);
+	print(charValue, intValue, floatValue, doubleValue, isPossible);
+	return;
+}
+
+char toChar(const char* scalar) {
+	return scalar[0];
+}
+
+void printChar(const char* scalar) {
+	bool isPossible = true;
+	char charValue = toChar(scalar);
+	int intValue = static_cast<int>(charValue);
+	float floatValue = static_cast<float>(charValue);
+	double doubleValue = static_cast<double>(charValue);
+	print(charValue, intValue, floatValue, doubleValue, isPossible);
+	return;
+}
+
+bool isFloat(const std::string& scalar) {
+	return scalar[scalar.length() - 1] == 'f';
+}
+
+bool isInt(const std::string& scalar) {
+	for (size_t i = 0; i < scalar.length(); ++i) {
+		if (!isdigit(scalar[i]))
+			return false;
+	}
+	return true;
+}
+
 bool isChar(const std::string& scalar) {
-	return scalar.length() == 1 && isascii(scalar.at(0));
+	return scalar.length() == 1 && isascii(scalar.at(0)) && !isdigit(scalar.at(0));
 }
 
-long toLong(const std::string& scalar, bool& isInteger, double doubleValue) {
-	std::stringstream ss(scalar);
-	long longValue;
-	if (ss >> longValue && doubleValue == static_cast<double>(longValue)) {
-		isInteger = true;
-	}
-	else if (isChar(scalar)) {
-		isInteger = true;
-		longValue = static_cast<long>(scalar[0]);
-		if (isdigit(longValue))
-			longValue -= '0';
-	}
-	return longValue;
-}
-
-double toDouble(const std::string& scalar, bool& isFloat) {
-	std::stringstream ss(scalar);
-	double doubleValue;
-	if (ss >> doubleValue || isChar(scalar))
-		isFloat = true;
-	return doubleValue;
-}
-
-std::string toString(const char* scalar) {
-	char* end;
-	strtod(scalar, &end);
-	if (*end == 'f')
-		*end = '\0';
-	return std::string(scalar);
+enum eType detectType(const char* scalar) {
+	std::string scalarStr(scalar);
+	if (isChar(scalarStr))
+		return CHAR;
+	else if (isInt(scalarStr))
+		return INT;
+	else if (isFloat(scalar))
+		return FLOAT;
+	else
+		return DOUBLE;
 }
 
 void ScalarConverter::convert(const char* scalar) {
-	bool isFloat = false;
-	bool isInteger = false;
-	std::string scalarStr = toString(scalar);
-	double doubleValue = toDouble(scalarStr, isFloat);
-	long longValue = toLong(scalarStr, isInteger, doubleValue);
-	if (!isInteger)
-		longValue = static_cast<long>(doubleValue);
-	printChar(longValue, isFloat);
-	printInt(longValue, isFloat);
-	printFloat(doubleValue, isInteger);
-	printDouble(doubleValue, isInteger);
+	switch (detectType(scalar)) {
+		case CHAR:
+			printChar(scalar);
+			break;
+		case INT:
+			printInt(scalar);
+			break;
+		case FLOAT:
+			printFloat(scalar);
+			break;
+		case DOUBLE:
+			printDouble(scalar);
+			break;
+	}
 	return;
 }
